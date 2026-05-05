@@ -7,6 +7,9 @@ interface User {
   id: number;
   email: string;
   full_name: string | null;
+  phone: string | null;
+  avatar_url: string | null;
+  role: string;
   is_active: boolean;
 }
 
@@ -36,7 +39,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const fetchUser = async () => {
     try {
-      const response = await api.get('/api/v1/auth/me');
+      const response = await api.get('/api/v1/users/me');
       setUser(response.data);
     } catch (error) {
       localStorage.removeItem('access_token');
@@ -54,6 +57,53 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
     const response = await api.post('/api/v1/auth/login', formData, {
       headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+    });
+
+    localStorage.setItem('access_token', response.data.access_token);
+    localStorage.setItem('refresh_token', response.data.refresh_token);
+    
+    await fetchUser();
+  };
+
+  const logout = useCallback(() => {
+    localStorage.removeItem('access_token');
+    localStorage.removeItem('refresh_token');
+    setUser(null);
+  }, []);
+
+  const register = async (email: string, password: string, fullName?: string) => {
+    await api.post('/api/v1/auth/register', {
+      email,
+      password,
+      full_name: fullName,
+    });
+    
+    await login(email, password);
+  };
+
+  return (
+    <AuthContext.Provider
+      value={{
+        user,
+        isLoading,
+        isAuthenticated: !!user,
+        login,
+        logout,
+        register,
+      }}
+    >
+      {children}
+    </AuthContext.Provider>
+  );
+}
+
+export function useAuth() {
+  const context = useContext(AuthContext);
+  if (context === undefined) {
+    throw new Error('useAuth must be used within an AuthProvider');
+  }
+  return context;
+}
     });
 
     const { access_token, refresh_token } = response.data;

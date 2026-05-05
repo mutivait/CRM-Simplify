@@ -1,9 +1,9 @@
 from typing import Annotated, List
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, status, Form
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
 from app.core.database import get_db
-from app.core.security import get_password_hash, create_access_token, create_refresh_token
+from app.core.security import get_password_hash, create_access_token, create_refresh_token, verify_password
 from app.schemas import UserCreate, UserResponse, UserUpdate, Token
 from app.dependencies.auth import get_current_user
 from app.models import User
@@ -44,17 +44,33 @@ async def register(
 
 @router.post("/login", response_model=Token)
 async def login(
-    email: str,
-    password: str,
-    db: Annotated[AsyncSession, Depends(get_db)]
+    username: str = Form(...),
+    password: str = Form(...),
+    db: Annotated[AsyncSession, Depends(get_db)] = None
 ):
     """Login and get access/refresh tokens."""
-    from app.core.security import verify_password
+    # username is actually email in our system
+    email = username
     
     result = await db.execute(select(User).where(User.email == email))
     user = result.scalar_one_or_none()
     
-    if not user or not verify_password(password, user.hashed_password):
+    if not user:
+        print(f"DEBUG: User {email} not found")
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Incorrect email or password",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+    
+    print(f"DEBUG: User found. DB hash: {user.hashed_password}")
+    print(f"DEBUG: Input password: {password}")
+    print(f"DEBUG: Hash length in DB: {len(user.hashed_password)}")
+    
+    is_valid = verify_password(password, user.hashed_password)
+    print(f"DEBUG: Password verification result: {is_valid}")
+    
+    if not is_valid:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Incorrect email or password",

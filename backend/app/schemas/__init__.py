@@ -39,6 +39,12 @@ class ActivityTypeEnum(str, Enum):
     SYSTEM = "system"
 
 
+class UserRoleEnum(str, Enum):
+    ADMIN = "ADMIN"
+    MANAGER = "MANAGER"
+    VIEWER = "VIEWER"
+
+
 # Auth Schemas
 class Token(BaseModel):
     access_token: str
@@ -55,11 +61,16 @@ class UserCreate(BaseModel):
     email: EmailStr
     password: str = Field(..., min_length=8)
     full_name: Optional[str] = None
+    phone: Optional[str] = None
+    role: UserRoleEnum = UserRoleEnum.MANAGER
 
 
 class UserUpdate(BaseModel):
     email: Optional[EmailStr] = None
     full_name: Optional[str] = None
+    phone: Optional[str] = None
+    avatar_url: Optional[str] = None
+    role: Optional[UserRoleEnum] = None
     is_active: Optional[bool] = None
 
 
@@ -67,11 +78,29 @@ class UserResponse(BaseModel):
     id: int
     email: str
     full_name: Optional[str]
+    phone: Optional[str]
+    avatar_url: Optional[str]
+    role: UserRoleEnum
     is_active: bool
+    is_superuser: bool
     created_at: datetime
+    updated_at: Optional[datetime]
 
     class Config:
         from_attributes = True
+
+
+class UserProfileUpdate(BaseModel):
+    """Schema for users to update their own profile."""
+    full_name: Optional[str] = None
+    phone: Optional[str] = None
+    avatar_url: Optional[str] = None
+
+
+class PasswordChange(BaseModel):
+    """Schema for changing password."""
+    current_password: str
+    new_password: str = Field(..., min_length=8)
 
 
 # Contact Schemas

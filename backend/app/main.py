@@ -3,7 +3,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from app.core.config import get_settings
 from app.core.database import engine, Base
-from app.routers import auth, contacts, leads, deals, tasks, activities
+from app.routers import auth, contacts, leads, deals, tasks, activities, users
 
 settings = get_settings()
 
@@ -43,6 +43,8 @@ def create_application() -> FastAPI:
     app.include_router(deals.router, prefix="/api/v1")
     app.include_router(tasks.router, prefix="/api/v1")
     app.include_router(activities.router, prefix="/api/v1")
+    app.include_router(users.router, prefix="/api/v1")
+    app.include_router(users.admin_router, prefix="/api/v1")
     
     # Health check endpoint
     @app.get("/health")

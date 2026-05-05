@@ -1,13 +1,15 @@
 from typing import Annotated, Optional
 from fastapi import Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordBearer
-from jose import jwt
+from jose import jwt, JWTError
 from pydantic import ValidationError
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy import select
 from app.core.database import get_db
 from app.core.config import get_settings
 from app.core.security import decode_token
 from app.schemas import TokenData
+from app.models import User, UserRole
 
 settings = get_settings()
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/v1/auth/login")
@@ -16,7 +18,7 @@ oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/v1/auth/login")
 async def get_current_user(
     token: Annotated[str, Depends(oauth2_scheme)],
     db: Annotated[AsyncSession, Depends(get_db)]
-) -> dict:
+) -> User:
     """Get current authenticated user from JWT token."""
     credentials_exception = HTTPException(
         status_code=status.HTTP_401_UNAUTHORIZED,
@@ -42,22 +44,38 @@ async def get_current_user(
     except (JWTError, ValidationError):
         raise credentials_exception
     
-    # Return user info (in real app, fetch from DB)
-    return {"email": token_data.email, "user_id": token_data.user_id}
+    # Fetch user from database
+    result = await db.execute(select(User).where(User.id == token_data.user_id))
+    user = result.scalar_one_or_none()
+    
+    if user is None:
+        raise credentials_exception
+    
+    if not user.is_active:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="User account is inactive"
+        )
+    
+    return user
 
 
 async def get_current_active_user(
-    current_user: Annotated[dict, Depends(get_current_user)]
-) -> dict:
+    current_user: Annotated[User, Depends(get_current_user)]
+) -> User:
     """Get current active user."""
     return current_user
 
 
-async def get_current_superuser(
-    current_user: Annotated[dict, Depends(get_current_user)],
-    db: Annotated[AsyncSession, Depends(get_db)]
-) -> dict:
-    """Get current superuser."""
-    # In real app, check is_superuser flag from DB
-    # For now, just return the user
-    return current_user
+def require_role(required_roles: list[UserRole]):
+    """Dependency factory to require specific roles."""
+    async def role_checker(
+        current_user: Annotated[User, Depends(get_current_user)]
+    ) -> User:
+        if current_user.role not in required_roles:
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="Insufficient permissions"
+            )
+        return current_user
+    return role_checker

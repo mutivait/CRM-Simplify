@@ -13,3 +13,4 @@ psycopg2-binary==2.9.9
 httpx==0.26.0
 aiosmtplib==3.0.1
 blinker==1.7.0
+email-validator==2.1.0

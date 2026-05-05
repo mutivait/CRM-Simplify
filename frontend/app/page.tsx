@@ -1,28 +1,28 @@
 'use client';
 
-import { useRouter } from 'next/navigation';
 import { useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import { useAuth } from '@/lib/auth-context';
 
 export default function HomePage() {
   const router = useRouter();
-  const { user, loading } = useAuth();
+  const { user, isLoading } = useAuth();
 
   useEffect(() => {
-    if (!loading) {
+    if (!isLoading) {
       if (user) {
         router.push('/dashboard');
       } else {
         router.push('/login');
       }
     }
-  }, [user, loading, router]);
+  }, [user, isLoading, router]);
 
   return (
-    <div className="flex min-h-screen items-center justify-center">
+    <div className="flex items-center justify-center h-screen">
       <div className="text-center">
-        <h1 className="text-4xl font-bold mb-4">CRM Platform</h1>
-        <p className="text-muted-foreground">Redirecting...</p>
+        <h1 className="text-2xl font-bold mb-4">CRM Platform</h1>
+        <p className="text-gray-600">Loading...</p>
       </div>
     </div>
   );

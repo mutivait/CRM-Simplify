@@ -6,7 +6,7 @@ class Settings(BaseSettings):
     """Application settings loaded from environment variables."""
     
     # Database
-    database_url: str = "postgresql+async://crm_user:crm_password@localhost:5432/crm_db"
+    database_url: str = "postgresql+asyncpg://crm_user:crm_password@localhost:5432/crm_db"
     
     # Redis
     redis_url: str = "redis://localhost:6379/0"
@@ -28,9 +28,7 @@ class Settings(BaseSettings):
     def cors_origins_list(self) -> list[str]:
         return [origin.strip() for origin in self.cors_origins.split(",")]
     
-    class Config:
-        env_file = ".env"
-        case_sensitive = False
+    model_config = {"extra": "ignore"}
 
 
 @lru_cache

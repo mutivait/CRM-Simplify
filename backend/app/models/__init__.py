@@ -41,6 +41,12 @@ class ActivityType(enum.Enum):
     SYSTEM = "system"
 
 
+class UserRole(enum.Enum):
+    ADMIN = "ADMIN"
+    MANAGER = "MANAGER"
+    VIEWER = "VIEWER"
+
+
 class User(Base):
     __tablename__ = "users"
 
@@ -48,6 +54,9 @@ class User(Base):
     email = Column(String(255), unique=True, index=True, nullable=False)
     hashed_password = Column(String(255), nullable=False)
     full_name = Column(String(255))
+    phone = Column(String(50), nullable=True)
+    avatar_url = Column(String(500), nullable=True)
+    role = Column(SQLEnum(UserRole), default=UserRole.MANAGER, nullable=False)
     is_active = Column(Boolean, default=True)
     is_superuser = Column(Boolean, default=False)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
@@ -163,7 +172,7 @@ class Activity(Base):
     lead_id = Column(Integer, ForeignKey("leads.id"), nullable=True)
     deal_id = Column(Integer, ForeignKey("deals.id"), nullable=True)
     task_id = Column(Integer, ForeignKey("tasks.id"), nullable=True)
-    metadata = Column(Text)  # JSON string for additional data
+    activity_metadata = Column(Text)  # JSON string for additional data
     created_at = Column(DateTime(timezone=True), server_default=func.now())
 
     user = relationship("User", back_populates="activities")
