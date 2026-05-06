@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { api } from '@/lib/api';
+import DashboardLayout from '@/components/DashboardLayout';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
@@ -78,13 +79,14 @@ export default function LeadsPage() {
   const totalValue = filteredLeads.reduce((sum: number, lead: Lead) => sum + lead.value, 0);
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <h1 className="text-3xl font-bold">Leads</h1>
-        <Button>
-          <Plus className="mr-2 h-4 w-4" /> Add Lead
-        </Button>
-      </div>
+    <DashboardLayout>
+      <div className="space-y-6">
+        <div className="flex items-center justify-between">
+          <h1 className="text-3xl font-bold">Leads</h1>
+          <Button>
+            <Plus className="mr-2 h-4 w-4" /> Add Lead
+          </Button>
+        </div>
 
       {/* Stats */}
       <div className="grid gap-4 md:grid-cols-4">
@@ -192,5 +194,6 @@ export default function LeadsPage() {
         </CardContent>
       </Card>
     </div>
+    </DashboardLayout>
   );
 }

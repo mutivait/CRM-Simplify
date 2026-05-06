@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { api } from '@/lib/api';
+import DashboardLayout from '@/components/DashboardLayout';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -74,11 +75,12 @@ export default function TasksPage() {
   const completedTasks = tasks.filter((t: Task) => t.status === 'completed');
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <h1 className="text-3xl font-bold">Tasks</h1>
-        <Button>New Task</Button>
-      </div>
+    <DashboardLayout>
+      <div className="space-y-6">
+        <div className="flex items-center justify-between">
+          <h1 className="text-3xl font-bold">Tasks</h1>
+          <Button>New Task</Button>
+        </div>
 
       {/* View Toggle */}
       <div className="flex gap-2">
@@ -172,92 +174,9 @@ export default function TasksPage() {
               {completedTasks.length === 0 && (
                 <p className="text-center text-muted-foreground py-4">No completed tasks</p>
               )}
-            </CardContent>
-          </Card>
-        </div>
-      ) : (
-        /* Calendar View */
-        <Card>
-          <CardHeader>
-            <div className="flex items-center justify-between">
-              <CardTitle>
-                {format(selectedDate, 'MMMM yyyy')}
-              </CardTitle>
-              <div className="flex gap-2">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => setSelectedDate(addDays(selectedDate, -7))}
-                >
-                  Previous Week
-                </Button>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => setSelectedDate(new Date())}
-                >
-                  Today
-                </Button>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => setSelectedDate(addDays(selectedDate, 7))}
-                >
-                  Next Week
-                </Button>
-              </div>
-            </div>
-          </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-7 gap-2">
-              {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map((day) => (
-                <div key={day} className="text-center text-sm font-medium text-muted-foreground py-2">
-                  {day}
-                </div>
-              ))}
-              {getWeekDates().map((date) => {
-                const dayTasks = getTasksForDate(date);
-                const isToday = isSameDay(date, new Date());
-                return (
-                  <div
-                    key={date.toISOString()}
-                    className={`min-h-[120px] p-2 rounded-lg border ${
-                      isToday ? 'bg-primary/10 border-primary' : ''
-                    }`}
-                  >
-                    <div className={`text-sm font-medium mb-2 ${isToday ? 'text-primary' : ''}`}>
-                      {format(date, 'd')}
-                    </div>
-                    <div className="space-y-1">
-                      {dayTasks.slice(0, 3).map((task) => (
-                        <div
-                          key={task.id}
-                          className={`text-xs p-1 rounded ${
-                            task.status === 'completed'
-                              ? 'bg-green-100 line-through'
-                              : task.priority === 'high'
-                              ? 'bg-red-100'
-                              : task.priority === 'medium'
-                              ? 'bg-yellow-100'
-                              : 'bg-green-50'
-                          }`}
-                        >
-                          {task.title}
-                        </div>
-                      ))}
-                      {dayTasks.length > 3 && (
-                        <div className="text-xs text-muted-foreground">
-                          +{dayTasks.length - 3} more
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          </CardContent>
-        </Card>
-      )}
+        </CardContent>
+      </Card>
     </div>
+    </DashboardLayout>
   );
 }

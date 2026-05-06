@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { api } from '@/lib/api';
+import DashboardLayout from '@/components/DashboardLayout';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -80,11 +81,12 @@ export default function PipelinePage() {
   };
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <h1 className="text-3xl font-bold">Sales Pipeline</h1>
-        <Button>Add Deal</Button>
-      </div>
+    <DashboardLayout>
+      <div className="space-y-6">
+        <div className="flex items-center justify-between">
+          <h1 className="text-3xl font-bold">Sales Pipeline</h1>
+          <Button>Add Deal</Button>
+        </div>
 
       {isLoading ? (
         <p className="text-center text-muted-foreground py-8">Loading pipeline...</p>
@@ -169,5 +171,6 @@ export default function PipelinePage() {
         </CardContent>
       </Card>
     </div>
+    </DashboardLayout>
   );
 }
