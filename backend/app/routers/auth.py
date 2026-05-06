@@ -1,10 +1,10 @@
 from typing import Annotated, List
-from fastapi import APIRouter, Depends, HTTPException, status, Form
+from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
 from app.core.database import get_db
 from app.core.security import get_password_hash, create_access_token, create_refresh_token, verify_password
-from app.schemas import UserCreate, UserResponse, UserUpdate, Token
+from app.schemas import UserCreate, UserResponse, UserUpdate, Token, LoginRequest, RefreshTokenRequest
 from app.dependencies.auth import get_current_user
 from app.models import User
 
@@ -44,13 +44,12 @@ async def register(
 
 @router.post("/login", response_model=Token)
 async def login(
-    username: str = Form(...),
-    password: str = Form(...),
-    db: Annotated[AsyncSession, Depends(get_db)] = None
+    login_data: LoginRequest,
+    db: Annotated[AsyncSession, Depends(get_db)]
 ):
     """Login and get access/refresh tokens."""
-    # username is actually email in our system
-    email = username
+    email = login_data.email
+    password = login_data.password
     
     result = await db.execute(select(User).where(User.email == email))
     user = result.scalar_one_or_none()
@@ -95,13 +94,13 @@ async def login(
 
 @router.post("/refresh", response_model=Token)
 async def refresh_token(
-    refresh_token: str,
+    token_request: RefreshTokenRequest,
     db: Annotated[AsyncSession, Depends(get_db)]
 ):
     """Refresh access token using refresh token."""
     from app.core.security import decode_token
     
-    payload = decode_token(refresh_token)
+    payload = decode_token(token_request.refresh_token)
     if not payload or payload.get("type") != "refresh":
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
